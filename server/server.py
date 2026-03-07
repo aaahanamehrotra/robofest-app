@@ -10,8 +10,8 @@ PERIOD = 1.0 / HZ
 
 def random_pose():
     return {
-        "x": round(random.uniform(-20, 20), 2),
-        "y": round(random.uniform(-20, 20), 2)
+        "x": round(random.uniform(0, 20), 2),
+        "y": round(random.uniform(0, 90), 2)
     }
 
 

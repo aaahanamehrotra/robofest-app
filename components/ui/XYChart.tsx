@@ -31,7 +31,7 @@ const renderCustomShape = (props: any) => {
   );
 };
 
-export default function XYChart() {
+export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin: number }) {
   // 2. Start with the empty skeleton
   const [rawData, setRawData] = useState(emptyData);
   
@@ -75,17 +75,17 @@ export default function XYChart() {
     };
   }, []);
 
-  const { dronesData, minesData, navigationPath, xDomain, yDomain } = useMemo(() => {
+  const { dronesData, minesData, navigationPath } = useMemo(() => {
     const drones = rawData.drones.map((drone: any) => ({
-      x: drone.pose.x,
-      y: drone.pose.y,
+      x: drone.pose.x + xOrigin,
+      y: drone.pose.y + yOrigin,
       label: 'drone',
       id: drone.id
     }));
 
     const mines = rawData.mines.map((mine: any, idx: number) => ({
-      x: mine.x,
-      y: mine.y,
+      x: mine.x + xOrigin,
+      y: mine.y + yOrigin,
       label: 'mine',
       id: idx
     }));
@@ -99,8 +99,8 @@ export default function XYChart() {
             dronesData: [], 
             minesData: [], 
             navigationPath: [], 
-            xDomain: [-25, 25], // Matched roughly to your Python script's random uniform bounds
-            yDomain: [-25, 25] 
+            // xDomain: [-25, 25], // Matched roughly to your Python script's random uniform bounds
+            // yDomain: [-25, 25] 
         };
     }
 
@@ -110,41 +110,45 @@ export default function XYChart() {
     const xMax = Math.max(...xValues);
     const yMin = Math.min(...yValues);
     const yMax = Math.max(...yValues);
-
+    console.log(xMax, xMin, yMax, yMin)
     const xPadding = (xMax - xMin) * 0.1 || 1; 
     const yPadding = (yMax - yMin) * 0.1 || 1;
     
     return {
       dronesData: drones,
       minesData: mines,
-      navigationPath: rawData.navigation_path,
-      xDomain: [Math.floor((xMin - xPadding) * 10) / 10, Math.ceil((xMax + xPadding) * 10) / 10],
-      yDomain: [Math.floor((yMin - yPadding) * 10) / 10, Math.ceil((yMax + yPadding) * 10) / 10]
+      navigationPath: rawData.navigation_path.map((point: any) => ({
+        x: point.x + xOrigin,
+        y: point.y + yOrigin
+      })),
+      // xDomain: [Math.floor((xMin - xPadding) * 10) / 10, Math.ceil((xMax + xPadding) * 10) / 10],
+      // yDomain: [Math.floor((yMin - yPadding) * 10) / 10, Math.ceil((yMax + yPadding) * 10) / 10]
     };
-  }, [rawData]);
+  }, [rawData, xOrigin, yOrigin]);
 
   return (
-    <div style={{ aspectRatio: "2/9", width: "100%", height: "400px" }}>
-      <ChartContainer config={chartConfig} style={{ width: "100%", height: "100%" }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} data={navigationPath}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" dataKey="x" name="X-Axis" unit="m" domain={xDomain} />
-            <YAxis type="number" dataKey="y" name="Y-Axis" unit="m" domain={yDomain} />
-            
-            <ReferenceLine x={xDomain[0]} stroke="black" strokeWidth={2} />
-            <ReferenceLine x={xDomain[1]} stroke="black" strokeWidth={2} />
-            <ReferenceLine y={yDomain[0]} stroke="black" strokeWidth={2} />
-            <ReferenceLine y={yDomain[1]} stroke="black" strokeWidth={2} />
-            
-            <Tooltip content={<ChartTooltipContent />} />
-            
-            <Line type="monotone" dataKey="y" stroke="#8884d8" dot={false} name="Navigation Path" isAnimationActive={false} />
-            <Scatter name="Drones" data={dronesData} fill="var(--color-xy)" shape={renderCustomShape} isAnimationActive={false} />
-            <Scatter name="Mines" data={minesData} fill="red" isAnimationActive={false} />
-          </ComposedChart>
-        </ResponsiveContainer>
-      </ChartContainer>
-    </div>
+     <div style={{ aspectRatio: "2/9", width: "180px", height: "auto" }}>
+       <ChartContainer config={chartConfig} style={{ width: "100%", height: "100%" }}>
+         <ResponsiveContainer width="100%" height="100%">
+           <ComposedChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} data={navigationPath}>
+           <CartesianGrid strokeDasharray="3 3" />
+           {/* Set type="number" for XAxis to handle coordinates properly */}
+           <XAxis type="number" dataKey="x" name="X-Axis" unit="m" domain={[0, 20]} />
+           <YAxis type="number" dataKey="y" name="Y-Axis" unit="m" domain={[0, 90]} />
+           {/* Rectangle outline based on data bounds */}
+           {/* <ReferenceLine x={0} stroke="black" strokeWidth={2} />
+           <ReferenceLine x={20} stroke="black" strokeWidth={2} />
+           <ReferenceLine y={0} stroke="black" strokeWidth={2} />
+           <ReferenceLine y={90} stroke="black" strokeWidth={2} /> */}
+         <Tooltip content={<ChartTooltipContent />} />
+         {/* Render the navigation path */}
+         <Line type="monotone" dataKey="y" stroke="#8884d8" dot={false} name="Navigation Path" isAnimationActive={false} />
+         {/* Render the scatter points */}
+         <Scatter name="Drones" data={dronesData} fill="var(--color-xy)" shape={renderCustomShape} />
+         <Scatter name="Mines" data={minesData} fill="red" />
+       </ComposedChart>
+         </ResponsiveContainer>
+     </ChartContainer>
+     </div>
   )
 }
