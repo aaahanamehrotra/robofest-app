@@ -1,0 +1,6 @@
+{
+	"appId": "com.example.app",
+	"appName": "my-app",
+	"webDir": "out",
+	"packageClassList": []
+}
