@@ -1,5 +1,4 @@
 'use client'
-//import { ..., Customized } from "recharts"
 import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, Line, LineChart, ComposedChart, ReferenceLine, Customized } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
 import { lazy } from "react"
@@ -70,18 +69,7 @@ const chartConfig = {
     color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig
-/*
-const renderCustomShape = (props: any) => {
-  const { cx, cy, fill } = props;
-  return (
-    <path
-      d="M0 10 L5 0 L10 10z" // Triangle shape path
-      fill={fill}
-      transform={`translate(${cx - 5},${cy - 5})`} // Center the triangle on the point
-    />
-  );
-};
-*/
+
 const renderCustomShape = (props: any) => {
   const { cx, cy } = props;
   return (
@@ -95,7 +83,6 @@ const renderMineShape = (props: any) => {
     <image href="/mine_icon.png" x={cx - 10} y={cy - 10} width="20" height="20" />
   );
 };
-
 
 const BackgroundRect = (props: any) => {
   const { xAxisMap, yAxisMap } = props;
@@ -112,55 +99,53 @@ const BackgroundRect = (props: any) => {
   );
 };
 
-
-
 export default function XYChart() {
   return (
-    // 3. Wrap in ChartContainer for shadcn styling
-    //<div style={{ aspectRatio: "2/9", width: "180px", height: "auto" }}>
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "16px" }}>
+    // Changed back to flexDirection: "column"
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "16px", padding: "20px" }}>
       
       {/* Drone Coordinates Table */}
       <div style={{
         border: "1px solid #ccc",
         borderRadius: "8px",
-        padding: "20px",
-        margin: "20px",
+        padding: "8px", // Tightened padding to fit 120px
         boxSizing: "border-box",
-        backgroundColor: "#f9f9f9",
-        width: "880px",
+        backgroundColor: "rgba(249, 249, 249, 0.95)", // Added slight transparency
+        width: "220px", // Fixed at 120px
         position: "sticky",
-        top: 0,
-        zIndex: 10
+        top: "20px", // Keeps it just under the viewport edge when scrolling
+        zIndex: 10,
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)" // Adds a shadow to separate it from the chart
       }}>
-        <h3 style={{ margin: "0 0 10px 0", fontSize: "13px", fontWeight: "bold", textAlign: "center" }}>
-          Drone Coordinates
+        <h3 style={{ margin: "0 0 8px 0", fontSize: "11px", fontWeight: "bold", textAlign: "center" }}>
+          Drone Coords
         </h3>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
           <thead>
             <tr style={{ backgroundColor: "#e0e0e0" }}>
-              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>Icon</th>
-              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>ID</th>
-              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>X (m)</th>
-              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>Y (m)</th>
+              <th style={{ padding: "2px", border: "1px solid #ccc", textAlign: "center" }}>Ic</th>
+              <th style={{ padding: "2px", border: "1px solid #ccc", textAlign: "center" }}>ID</th>
+              <th style={{ padding: "2px", border: "1px solid #ccc", textAlign: "center" }}>X</th>
+              <th style={{ padding: "2px", border: "1px solid #ccc", textAlign: "center" }}>Y</th>
             </tr>
           </thead>
           <tbody>
             {dronesData.map(drone => (
               <tr key={drone.id}>
-                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>
-                  <img src="/drone_icon.png" width="16" height="16" />
+                <td style={{ padding: "2px", border: "1px solid #ccc", textAlign: "center" }}>
+                  <img src="/drone_icon.png" width="12" height="12" style={{ display: "block", margin: "0 auto" }}/>
                 </td>
-                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.id}</td>
-                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.x}</td>
-                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.y}</td>
+                <td style={{ padding: "2px", border: "1px solid #ccc", textAlign: "center" }}>{drone.id}</td>
+                <td style={{ padding: "2px", border: "1px solid #ccc", textAlign: "center" }}>{drone.x}</td>
+                <td style={{ padding: "2px", border: "1px solid #ccc", textAlign: "center" }}>{drone.y}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <div style={{ aspectRatio: "2/9", width: "880px", height: "auto" }}>
+      {/* Chart Section */}
+      <div style={{ aspectRatio: "2/9", width: "800px", height: "auto" }}>
         <ChartContainer config={chartConfig} style={{ width: "100%", height: "100%" }}>
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} data={navigationPath}>
