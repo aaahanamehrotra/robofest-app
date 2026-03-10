@@ -1,8 +1,6 @@
 'use client'
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Label, Line, LineChart, ComposedChart, ReferenceLine, Customized } from "recharts"
+import { Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart, ReferenceLine, Customized } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
-import { lazy } from "react"
-import { X } from "lucide-react"
 
 // 1. Parse the JSON data
 const rawData = {
@@ -73,14 +71,28 @@ const chartConfig = {
 const renderCustomShape = (props: any) => {
   const { cx, cy } = props;
   return (
-    <image href="/drone_icon.png" x={cx - 10} y={cy - 10} width="20" height="20" />
+    <image 
+      href="/drone_icon.png" 
+      xlinkHref="/drone_icon.png" 
+      x={cx - 10} 
+      y={cy - 10} 
+      width="20" 
+      height="20" 
+    />
   );
 };
 
 const renderMineShape = (props: any) => {
   const { cx, cy } = props;
   return (
-    <image href="/mine_icon.png" x={cx - 15} y={cy - 15} width="30" height="30" />
+    <image 
+      href="/mine_icon.png" 
+      xlinkHref="/mine_icon.png" 
+      x={cx - 15} // Updated to 15 for a 30x30 image
+      y={cy - 15} // Updated to 15 for a 30x30 image
+      width="30"  // Increased size
+      height="30" // Increased size
+    />
   );
 };
 
@@ -101,21 +113,20 @@ const BackgroundRect = (props: any) => {
 
 export default function XYChart() {
   return (
-    // Changed back to flexDirection: "column"
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "16px", padding: "20px" }}>
+    // 1. Main wrapper locks the screen height and prevents full-page scrolling
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: "16px", padding: "20px", height: "100vh", boxSizing: "border-box", overflow: "hidden" }}>
       
       {/* Drone Coordinates Table */}
       <div style={{
         border: "1px solid #ccc",
         borderRadius: "8px",
-        padding: "8px", // Tightened padding to fit 120px
+        padding: "8px", 
         boxSizing: "border-box",
-        backgroundColor: "rgba(249, 249, 249, 0.95)", // Added slight transparency
-        width: "220px", // Fixed at 120px
-        position: "sticky",
-        top: "20px", // Keeps it just under the viewport edge when scrolling
+        backgroundColor: "rgba(249, 249, 249, 0.95)", 
+        width: "320px", 
         zIndex: 10,
-        boxShadow: "0 4px 12px rgba(0,0,0,0.15)" // Adds a shadow to separate it from the chart
+        boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+        flexShrink: 0 // Prevents the table from squishing when space runs out
       }}>
         <h3 style={{ margin: "0 0 8px 0", fontSize: "11px", fontWeight: "bold", textAlign: "center" }}>
           Drone Coords
@@ -144,32 +155,33 @@ export default function XYChart() {
         </table>
       </div>
 
-      {/* Chart Section */}
-      <div style={{ aspectRatio: "2/9", width: "800px", height: "auto" }}>
-        <ChartContainer config={chartConfig} style={{ width: "100%", height: "100%" }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} data={navigationPath}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <Customized component={BackgroundRect} />
-              {/* Set type="number" for XAxis to handle coordinates properly */}
-              <XAxis type="number" dataKey="x" name="X-Axis" unit="m" domain={xDomain} />
-              <YAxis type="number" dataKey="y" name="Y-Axis" unit="m" domain={yDomain} />
-              {/* Rectangle outline based on data bounds */}
-              <ReferenceLine x={xDomain[0]} stroke="black" strokeWidth={2} />
-              <ReferenceLine x={xDomain[1]} stroke="black" strokeWidth={2} />
-              <ReferenceLine y={yDomain[0]} stroke="black" strokeWidth={2} />
-              <ReferenceLine y={yDomain[1]} stroke="black" strokeWidth={2} />
-              <Tooltip content={<ChartTooltipContent />} />
-              {/* Render the navigation path */}
-              <Line type="monotone" dataKey="y" stroke="#8884d8" dot={false} name="Navigation Path" isAnimationActive={false} />
-              {/* Render the scatter points */}
-              <Scatter name="Drones" data={dronesData} fill="var(--color-xy)" shape={renderCustomShape} />
-              <Scatter name="Mines" data={minesData} fill="red" shape={renderMineShape} />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </ChartContainer>
+      {/* 2. Chart Section inside an overflow container so ONLY the chart scrolls */}
+      <div style={{ flexGrow: 1, width: "100%", overflowY: "auto", overflowX: "auto", borderRadius: "8px" }}>
+        
+        <div style={{ aspectRatio: "2/9", width: "800px", height: "auto" }}>
+          <ChartContainer config={chartConfig} style={{ width: "100%", height: "100%" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} data={navigationPath}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <Customized component={BackgroundRect} />
+                <XAxis type="number" dataKey="x" name="X-Axis" unit="m" domain={xDomain} />
+                <YAxis type="number" dataKey="y" name="Y-Axis" unit="m" domain={yDomain} />
+                <ReferenceLine x={xDomain[0]} stroke="black" strokeWidth={2} />
+                <ReferenceLine x={xDomain[1]} stroke="black" strokeWidth={2} />
+                <ReferenceLine y={yDomain[0]} stroke="black" strokeWidth={2} />
+                <ReferenceLine y={yDomain[1]} stroke="black" strokeWidth={2} />
+                <Tooltip content={<ChartTooltipContent />} />
+                <Line type="monotone" dataKey="y" stroke="#8884d8" dot={false} name="Navigation Path" isAnimationActive={false} />
+                <Scatter name="Drones" data={dronesData} fill="var(--color-xy)" shape={renderCustomShape} />
+                <Scatter name="Mines" data={minesData} fill="red" shape={renderMineShape} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </div>
+        
       </div>
 
     </div>
   )
 }
+
