@@ -181,8 +181,8 @@ export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin
         <div style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <div style={{ fontSize: 12 }}>Mode: {rawData.mode}</div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button style={{ fontSize: 12, padding: "6px 10px", borderRadius: 6, border: "1px solid #666", background: showDroneModal ? "#2f86eb" : "white", color: showDroneModal ? "white" : "black" }} onClick={() => { setShowDroneModal(true); setViewGraph(true); }}>Show Drone Data</button>
-            <button style={{ fontSize: 12, padding: "6px 10px", borderRadius: 6, border: "1px solid #666", background: showMineModal ? "#2f86eb" : "white", color: showMineModal ? "white" : "black" }} onClick={() => { setShowMineModal(true); setViewGraph(true); }}>Show Mines Data</button>
+            <button style={{ fontSize: 12, padding: "6px 10px", borderRadius: 6, border: "1px solid #666", background: showDroneModal ? "#2f86eb" : "white", color: showDroneModal ? "white" : "black" }} onClick={() => { setShowDroneModal(true); }}>Show Drone Data</button>
+            <button style={{ fontSize: 12, padding: "6px 10px", borderRadius: 6, border: "1px solid #666", background: showMineModal ? "#2f86eb" : "white", color: showMineModal ? "white" : "black" }} onClick={() => { setShowMineModal(true); }}>Show Mines Data</button>
             <button style={{ fontSize: 12, padding: "6px 10px", borderRadius: 6, border: "1px solid #666", background: viewGraph ? "#2f86eb" : "white", color: viewGraph ? "white" : "black" }} onClick={() => setViewGraph(!viewGraph)}>View Graph</button>
           </div>
         </div>
