@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useMemo } from "react"
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, ComposedChart, ReferenceLine } from "recharts"
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Line, Customized, ComposedChart, ReferenceLine } from "recharts"
 import { ChartConfig, ChartContainer, ChartTooltipContent } from "@/components/ui/chart"
 
 
@@ -11,7 +11,7 @@ const emptyData = {
   drones: [],
   mines: [],
   navigation_path: []
-};
+}
 
 const chartConfig = {
   xy: {
@@ -21,15 +21,36 @@ const chartConfig = {
 } satisfies ChartConfig
 
 const renderCustomShape = (props: any) => {
-  const { cx, cy, fill } = props;
+  const { cx, cy } = props;
   return (
-    <path
-      d="M0 10 L5 0 L10 10z" 
-      fill={fill}
-      transform={`translate(${cx - 5},${cy - 5})`} 
+    <image href="/drone_icon.png" x={cx - 10} y={cy - 10} width="20" height="20" />
+  );
+};
+
+const renderMineShape = (props: any) => {
+  const { cx, cy } = props;
+  return (
+    <image href="/mine_icon.png" x={cx - 10} y={cy - 10} width="20" height="20" />
+  );
+};
+
+// 1. Add this component
+const BackgroundRect = (props: any) => {
+  const { xAxisMap, yAxisMap } = props;
+  const xAxis = Object.values(xAxisMap)[0] as any;
+  const yAxis = Object.values(yAxisMap)[0] as any;
+  return (
+    <rect
+      x={xAxis.x}
+      y={yAxis.y}
+      width={xAxis.width}
+      height={yAxis.height}
+      fill="#98ba65"
     />
   );
 };
+
+
 
 export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin: number }) {
   // 2. Start with the empty skeleton
@@ -76,11 +97,13 @@ export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin
   }, []);
 
   const { dronesData, minesData, navigationPath } = useMemo(() => {
+    
     const drones = rawData.drones.map((drone: any) => ({
       x: drone.pose.x + xOrigin,
       y: drone.pose.y + yOrigin,
       label: 'drone',
-      id: drone.id
+      id: drone.id,
+      battery: drone.battery  // add this
     }));
 
     const mines = rawData.mines.map((mine: any, idx: number) => ({
@@ -127,10 +150,50 @@ export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin
   }, [rawData, xOrigin, yOrigin]);
 
   return (
-     <div style={{ aspectRatio: "2/9", width: "180px", height: "auto" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "flex-start", }}>
+
+
+      <div style={{
+      border: "1px solid #ccc",
+      borderRadius: "8px",
+      padding: "12px",
+      backgroundColor: "#f9f9f9",
+      minWidth: "180px",
+    }}>
+      <h3 style={{ margin: "0 0 10px 0", fontSize: "13px", fontWeight: "bold", textAlign: "center" }}>
+        Drone Coordinates
+      </h3>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+        <thead>
+          <tr style={{ backgroundColor: "#e0e0e0" }}>
+            <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>ID</th>
+            <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>Battery</th>
+            <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>X (m)</th>
+            <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>Y (m)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {dronesData.map(drone => (
+            <tr key={drone.id}>
+              <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.id}</td>
+              <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.battery ?? "N/A"}</td>
+              <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.x}</td>
+              <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.y}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      Mode: {rawData.mode}
+    </div>
+
+
+
+     <div style={{ aspectRatio: "2/9", width: "360px", height: "auto"}}>
        <ChartContainer config={chartConfig} style={{ width: "100%", height: "100%" }}>
          <ResponsiveContainer width="100%" height="100%">
            <ComposedChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} data={navigationPath}>
+  <Customized component={<BackgroundRect />} />
+
            <CartesianGrid strokeDasharray="3 3" />
            {/* Set type="number" for XAxis to handle coordinates properly */}
            <XAxis type="number" dataKey="x" name="X-Axis" unit="m" domain={[0, 20]} />
@@ -145,10 +208,17 @@ export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin
          <Line type="monotone" dataKey="y" stroke="#8884d8" dot={false} name="Navigation Path" isAnimationActive={false} />
          {/* Render the scatter points */}
          <Scatter name="Drones" data={dronesData} fill="var(--color-xy)" shape={renderCustomShape} />
-         <Scatter name="Mines" data={minesData} fill="red" />
+         <Scatter name="Mines" data={minesData} fill="red" shape={renderMineShape} />
        </ComposedChart>
          </ResponsiveContainer>
      </ChartContainer>
+     </div>
+
+      
+       
+
+
+
      </div>
   )
 }
