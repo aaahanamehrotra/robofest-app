@@ -69,6 +69,7 @@ const BackgroundRect = (props: any) => {
 export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin: number }) {
   // 2. Start with the empty skeleton
   const [rawData, setRawData] = useState(emptyData);
+  const [showMinesModal, setShowMinesModal] = useState(false);
   
   const socketRef = useRef<WebSocket | null>(null);
   const latestDataRef = useRef(emptyData);
@@ -110,7 +111,7 @@ export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin
     };
   }, []);
 
-  const { dronesData, minesData, navigationPath } = useMemo(() => {
+  const { dronesData, minesData, navigationPath, xDomain, yDomain } = useMemo(() => {
     
     const drones = rawData.drones.map((drone: any) => ({
       x: drone.pose.x + xOrigin,
@@ -136,8 +137,8 @@ export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin
             dronesData: [], 
             minesData: [], 
             navigationPath: [], 
-            // xDomain: [-25, 25], // Matched roughly to your Python script's random uniform bounds
-            // yDomain: [-25, 25] 
+            xDomain: [-25, 25],
+            yDomain: [-25, 25]
         };
     }
 
@@ -147,9 +148,8 @@ export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin
     const xMax = Math.max(...xValues);
     const yMin = Math.min(...yValues);
     const yMax = Math.max(...yValues);
-    console.log(xMax, xMin, yMax, yMin)
-    const xPadding = (xMax - xMin) * 0.1 || 1; 
-    const yPadding = (yMax - yMin) * 0.1 || 1;
+    const xPadding = (xMax - xMin) * 0.12 || 1; 
+    const yPadding = (yMax - yMin) * 0.12 || 1;
     
     return {
       dronesData: drones,
@@ -158,81 +158,97 @@ export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin
         x: point.x + xOrigin,
         y: point.y + yOrigin
       })),
-      // xDomain: [Math.floor((xMin - xPadding) * 10) / 10, Math.ceil((xMax + xPadding) * 10) / 10],
-      // yDomain: [Math.floor((yMin - yPadding) * 10) / 10, Math.ceil((yMax + yPadding) * 10) / 10]
+      xDomain: [Math.floor((xMin - xPadding) * 10) / 10, Math.ceil((xMax + xPadding) * 10) / 10],
+      yDomain: [Math.floor((yMin - yPadding) * 10) / 10, Math.ceil((yMax + yPadding) * 10) / 10]
     };
   }, [rawData, xOrigin, yOrigin]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "flex-start", }}>
-
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "flex-start", width: "100%" }}>
 
       <div style={{
-      border: "1px solid #ccc",
-      borderRadius: "8px",
-      padding: "12px",
-      backgroundColor: "#f9f9f9",
-      minWidth: "180px",
-    }}>
-      <h3 style={{ margin: "0 0 10px 0", fontSize: "13px", fontWeight: "bold", textAlign: "center" }}>
-        Drone Coordinates
-      </h3>
-      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-        <thead>
-          <tr style={{ backgroundColor: "#e0e0e0" }}>
-            <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>ID</th>
-            <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>Battery</th>
-            <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>X (m)</th>
-            <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>Y (m)</th>
-          </tr>
-        </thead>
-        <tbody>
-          {dronesData.map(drone => (
-            <tr key={drone.id}>
-              <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.id}</td>
-              <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.battery ?? "N/A"}</td>
-              <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.x}</td>
-              <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.y}</td>
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+        padding: "12px",
+        backgroundColor: "#f9f9f9",
+        width: "100%"
+      }}>
+        <h3 style={{ margin: "0 0 10px 0", fontSize: "13px", fontWeight: "bold", textAlign: "center" }}>
+          Drone Coordinates
+        </h3>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
+          <thead>
+            <tr style={{ backgroundColor: "#e0e0e0" }}>
+              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>ID</th>
+              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>Battery</th>
+              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>X (m)</th>
+              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>Y (m)</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      Mode: {rawData.mode}
+          </thead>
+          <tbody>
+            {dronesData.map(drone => (
+              <tr key={drone.id}>
+                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.id}</td>
+                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.battery ?? "N/A"}</td>
+                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.x}</td>
+                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.y}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <div style={{ fontSize: 12 }}>Mode: {rawData.mode}</div>
+          <button style={{ fontSize: 12, padding: "6px 8px", borderRadius: 6, border: "1px solid #666", background: "white" }} onClick={() => setShowMinesModal(true)}>
+            View Mines Data
+          </button>
+        </div>
+      </div>
+
+      <div style={{ aspectRatio: "2/9", width: "360px", maxWidth: 840, height: "auto" }}>
+        <ChartContainer config={chartConfig} style={{ width: "100%", height: "100%" }}>
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} data={navigationPath}>
+              <Customized component={BackgroundRect} />
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" dataKey="x" name="X-Axis" unit="m" domain={xDomain} />
+              <YAxis type="number" dataKey="y" name="Y-Axis" unit="m" domain={yDomain} />
+              <Tooltip content={<ChartTooltipContent />} />
+              <Line type="monotone" dataKey="y" stroke="#8884d8" dot={false} name="Navigation Path" isAnimationActive={false} />
+              <Scatter name="Drones" data={dronesData} fill="var(--color-xy)" shape={renderCustomShape} />
+              <Scatter name="Mines" data={minesData} fill="red" shape={renderMineShape} />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+      </div>
+
+      {showMinesModal && (
+        <div style={{ position: "fixed", left: 0, top: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.35)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 999 }}>
+          <div style={{ background: "white", borderRadius: 10, width: "min(92vw, 500px)", maxHeight: "80vh", overflow: "auto", padding: 16, boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <h3 style={{ margin: 0, fontSize: 16 }}>Mines Data</h3>
+              <button onClick={() => setShowMinesModal(false)} style={{ border: "1px solid #ccc", borderRadius: 6, padding: "4px 8px", background: "#f3f3f3" }}>Close</button>
+            </div>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: "#f0f0f0" }}>
+                  <th style={{ padding: 6, border: "1px solid #ccc", textAlign: "left" }}>Mine ID</th>
+                  <th style={{ padding: 6, border: "1px solid #ccc", textAlign: "left" }}>X</th>
+                  <th style={{ padding: 6, border: "1px solid #ccc", textAlign: "left" }}>Y</th>
+                </tr>
+              </thead>
+              <tbody>
+                {minesData.map((mine: any) => (
+                  <tr key={mine.id}>
+                    <td style={{ padding: 6, border: "1px solid #ccc" }}>{mine.id}</td>
+                    <td style={{ padding: 6, border: "1px solid #ccc" }}>{mine.x.toFixed ? mine.x.toFixed(2) : mine.x}</td>
+                    <td style={{ padding: 6, border: "1px solid #ccc" }}>{mine.y.toFixed ? mine.y.toFixed(2) : mine.y}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
-
-
-
-     <div style={{ aspectRatio: "2/9", width: "360px", height: "auto"}}>
-       <ChartContainer config={chartConfig} style={{ width: "100%", height: "100%" }}>
-         <ResponsiveContainer width="100%" height="100%">
-           <ComposedChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} data={navigationPath}>
-  <Customized component={<BackgroundRect />} />
-
-           <CartesianGrid strokeDasharray="3 3" />
-           {/* Set type="number" for XAxis to handle coordinates properly */}
-           <XAxis type="number" dataKey="x" name="X-Axis" unit="m" domain={[0, 20]} />
-           <YAxis type="number" dataKey="y" name="Y-Axis" unit="m" domain={[0, 90]} />
-           {/* Rectangle outline based on data bounds */}
-           {/* <ReferenceLine x={0} stroke="black" strokeWidth={2} />
-           <ReferenceLine x={20} stroke="black" strokeWidth={2} />
-           <ReferenceLine y={0} stroke="black" strokeWidth={2} />
-           <ReferenceLine y={90} stroke="black" strokeWidth={2} /> */}
-         <Tooltip content={<ChartTooltipContent />} />
-         {/* Render the navigation path */}
-         <Line type="monotone" dataKey="y" stroke="#8884d8" dot={false} name="Navigation Path" isAnimationActive={false} />
-         {/* Render the scatter points */}
-         <Scatter name="Drones" data={dronesData} fill="var(--color-xy)" shape={renderCustomShape} />
-         <Scatter name="Mines" data={minesData} fill="red" shape={renderMineShape} />
-       </ComposedChart>
-         </ResponsiveContainer>
-     </ChartContainer>
-     </div>
-
-      
-       
-
-
-
-     </div>
   )
 }
