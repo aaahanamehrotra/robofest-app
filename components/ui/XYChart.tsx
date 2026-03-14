@@ -29,8 +29,22 @@ const renderCustomShape = (props: any) => {
 
 const renderMineShape = (props: any) => {
   const { cx, cy } = props;
+  const size = 16;
+  const radius = size / 2;
+  const gradientId = `mine-gradient-${props.id ?? Math.random().toString(36).slice(2, 8)}`;
+
   return (
-    <image href="/mine_icon.png" x={cx - 10} y={cy - 10} width="20" height="20" />
+    <g>
+      <defs>
+        <radialGradient id={gradientId} cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+          <stop offset="0%" stopColor="#ff3a3a" stopOpacity="1" />
+          <stop offset="50%" stopColor="#ff3a3a" stopOpacity="0.6" />
+          <stop offset="100%" stopColor="#ff3a3a" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx={cx} cy={cy} r={radius} fill={`url(#${gradientId})`} />
+      <circle cx={cx} cy={cy} r={radius * 0.35} fill="#ff0000" opacity="0.9" />
+    </g>
   );
 };
 
