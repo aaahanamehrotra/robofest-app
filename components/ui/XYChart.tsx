@@ -69,7 +69,9 @@ const BackgroundRect = (props: any) => {
 export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin: number }) {
   // 2. Start with the empty skeleton
   const [rawData, setRawData] = useState(emptyData);
-  const [showMinesModal, setShowMinesModal] = useState(false);
+  const [showDroneModal, setShowDroneModal] = useState(false);
+  const [showMineModal, setShowMineModal] = useState(false);
+  const [viewGraph, setViewGraph] = useState(false);
   
   const socketRef = useRef<WebSocket | null>(null);
   const latestDataRef = useRef(emptyData);
@@ -174,59 +176,74 @@ export default function XYChart({ xOrigin, yOrigin }: { xOrigin: number; yOrigin
         width: "100%"
       }}>
         <h3 style={{ margin: "0 0 10px 0", fontSize: "13px", fontWeight: "bold", textAlign: "center" }}>
-          Drone Coordinates
         </h3>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
-          <thead>
-            <tr style={{ backgroundColor: "#e0e0e0" }}>
-              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>ID</th>
-              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>Battery</th>
-              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>X (m)</th>
-              <th style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>Y (m)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dronesData.map(drone => (
-              <tr key={drone.id}>
-                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.id}</td>
-                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.battery ?? "N/A"}</td>
-                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.x}</td>
-                <td style={{ padding: "6px", border: "1px solid #ccc", textAlign: "center" }}>{drone.y}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
         <div style={{ marginTop: 8, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
           <div style={{ fontSize: 12 }}>Mode: {rawData.mode}</div>
-          <button style={{ fontSize: 12, padding: "6px 8px", borderRadius: 6, border: "1px solid #666", background: "white" }} onClick={() => setShowMinesModal(true)}>
-            View Mines Data
-          </button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={{ fontSize: 12, padding: "6px 10px", borderRadius: 6, border: "1px solid #666", background: showDroneModal ? "#2f86eb" : "white", color: showDroneModal ? "white" : "black" }} onClick={() => { setShowDroneModal(true); setViewGraph(true); }}>Show Drone Data</button>
+            <button style={{ fontSize: 12, padding: "6px 10px", borderRadius: 6, border: "1px solid #666", background: showMineModal ? "#2f86eb" : "white", color: showMineModal ? "white" : "black" }} onClick={() => { setShowMineModal(true); setViewGraph(true); }}>Show Mines Data</button>
+            <button style={{ fontSize: 12, padding: "6px 10px", borderRadius: 6, border: "1px solid #666", background: viewGraph ? "#2f86eb" : "white", color: viewGraph ? "white" : "black" }} onClick={() => setViewGraph(!viewGraph)}>View Graph</button>
+          </div>
         </div>
       </div>
 
-      <div style={{ aspectRatio: "2/9", width: "360px", maxWidth: 840, height: "auto" }}>
-        <ChartContainer config={chartConfig} style={{ width: "100%", height: "100%" }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} data={navigationPath}>
-              <Customized component={BackgroundRect} />
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" dataKey="x" name="X-Axis" unit="m" domain={xDomain} />
-              <YAxis type="number" dataKey="y" name="Y-Axis" unit="m" domain={yDomain} />
-              <Tooltip content={<ChartTooltipContent />} />
-              <Line type="monotone" dataKey="y" stroke="#8884d8" dot={false} name="Navigation Path" isAnimationActive={false} />
-              <Scatter name="Drones" data={dronesData} fill="var(--color-xy)" shape={renderCustomShape} />
-              <Scatter name="Mines" data={minesData} fill="red" shape={renderMineShape} />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </ChartContainer>
-      </div>
+      
+        <div style={{ aspectRatio: "2/9", width: viewGraph ? "200%":"180px", height: "auto" }}>
+          <ChartContainer config={chartConfig} style={{ width: "100%", height: "100%" }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }} data={navigationPath}>
+                <Customized component={BackgroundRect} />
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" dataKey="x" name="X-Axis" unit="m" domain={xDomain} />
+                <YAxis type="number" dataKey="y" name="Y-Axis" unit="m" domain={yDomain} />
+                <Tooltip content={<ChartTooltipContent />} />
+                <Line type="monotone" dataKey="y" stroke="#8884d8" dot={false} name="Navigation Path" isAnimationActive={false} />
+                <Scatter name="Drones" data={dronesData} fill="var(--color-xy)" shape={renderCustomShape} />
+                <Scatter name="Mines" data={minesData} fill="red" shape={renderMineShape} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </div>
+      
 
-      {showMinesModal && (
+      {showDroneModal && (
+        <div style={{ position: "fixed", left: 0, top: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.35)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 999 }}>
+          <div style={{ background: "white", borderRadius: 10, width: "min(92vw, 500px)", maxHeight: "80vh", overflow: "auto", padding: 16, boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <h3 style={{ margin: 0, fontSize: 16 }}>Drone Data</h3>
+              <button onClick={() => setShowDroneModal(false)} style={{ border: "1px solid #ccc", borderRadius: 6, padding: "4px 8px", background: "#f3f3f3" }}>Close</button>
+            </div>
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: "#f0f0f0" }}>
+                  <th style={{ padding: 6, border: "1px solid #ccc", textAlign: "left" }}>ID</th>
+                  <th style={{ padding: 6, border: "1px solid #ccc", textAlign: "left" }}>Battery</th>
+                  <th style={{ padding: 6, border: "1px solid #ccc", textAlign: "left" }}>X</th>
+                  <th style={{ padding: 6, border: "1px solid #ccc", textAlign: "left" }}>Y</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dronesData.map((drone: any) => (
+                  <tr key={drone.id}>
+                    <td style={{ padding: 6, border: "1px solid #ccc" }}>{drone.id}</td>
+                    <td style={{ padding: 6, border: "1px solid #ccc" }}>{drone.battery ?? "N/A"}</td>
+                    <td style={{ padding: 6, border: "1px solid #ccc" }}>{drone.x.toFixed ? drone.x.toFixed(2) : drone.x}</td>
+                    <td style={{ padding: 6, border: "1px solid #ccc" }}>{drone.y.toFixed ? drone.y.toFixed(2) : drone.y}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {showMineModal && (
         <div style={{ position: "fixed", left: 0, top: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.35)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 999 }}>
           <div style={{ background: "white", borderRadius: 10, width: "min(92vw, 500px)", maxHeight: "80vh", overflow: "auto", padding: 16, boxShadow: "0 10px 30px rgba(0,0,0,0.2)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <h3 style={{ margin: 0, fontSize: 16 }}>Mines Data</h3>
-              <button onClick={() => setShowMinesModal(false)} style={{ border: "1px solid #ccc", borderRadius: 6, padding: "4px 8px", background: "#f3f3f3" }}>Close</button>
+              <button onClick={() => setShowMineModal(false)} style={{ border: "1px solid #ccc", borderRadius: 6, padding: "4px 8px", background: "#f3f3f3" }}>Close</button>
             </div>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
               <thead>

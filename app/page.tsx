@@ -17,11 +17,10 @@ export default function Home() {
       <div className="z-10 w-full max-w-5xl flex flex-col gap-8 font-mono text-sm">
         
         {/* <div className="text-center"> */}
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-2 te">
+          {/* <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-2 te"> */}
             Live Drone Tracker
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400">
-          </p>
+          {/* </h1> */}
+       
         {/* </div> */}
 
         {!isConfigured ? (
